@@ -1,1 +1,1 @@
-# Code Aplpha Resturant Managment System
+# Code Alpha Resturant Managment System
