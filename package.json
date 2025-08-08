@@ -1,0 +1,26 @@
+{
+  "name": "restaurantmanagmentsystem",
+  "version": "1.0.0",
+  "description": "this project is designed and developed for a internship task at codealpha",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Biniyamgirma/CodeAlpha_Restaurant_Managment_System.git"
+  },
+  "author": "Biniyam Girma",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Biniyamgirma/CodeAlpha_Restaurant_Managment_System/issues"
+  },
+  "homepage": "https://github.com/Biniyamgirma/CodeAlpha_Restaurant_Managment_System#readme",
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.1",
+    "express": "^5.1.0"
+  }
+}
