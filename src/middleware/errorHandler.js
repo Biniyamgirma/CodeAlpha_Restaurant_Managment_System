@@ -1,3 +1,5 @@
+import logger from "../utils/logger.js";
+
 export default (err,req,res,next)=>{
     logger.error(err.stack);
     res.status(500).json({message:"Internal server Error"});
