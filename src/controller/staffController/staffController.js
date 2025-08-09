@@ -1,11 +1,6 @@
-import pool from '../database/connection.js';
-import bcrypt from 'bcrypt';
-
-// Helper function to remove the password hash from the staff object before sending it in a response
-const sanitizeStaff = (staff) => {
-    const { password_hash, ...sanitized } = staff;
-    return sanitized;
-};
+import pool from '../../database/connection.js';
+import { hashPassword ,comparePassword } from '../../utils/passwordFunctionality.js';
+import sanitizeStaff from '../../utils/sanitizeStaff.js';
 
 // @desc    Create a new staff member
 // @route   POST /api/v1/staff
@@ -16,17 +11,21 @@ const createStaff = async (req, res) => {
     if (!restaurant_id || !first_name || !last_name || !email || !password || !role) {
         return res.status(400).json({ message: 'Please provide all required fields: restaurant_id, first_name, last_name, email, password, role' });
     }
-
-    // Hash the password before storing it
-    const salt = await bcrypt.genSalt(10);
-    const password_hash = await bcrypt.hash(password, salt);
-
+    try{
+    const hashedPassword = await hashPassword(password);
     const { rows } = await pool.query(
-        'INSERT INTO staff (restaurant_id, first_name, last_name, email, password_hash, role) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-        [restaurant_id, first_name, last_name, email, password_hash, role]
-    );
+            'INSERT INTO staff (restaurant_id, first_name, last_name, email, password_hash, role) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+            [restaurant_id, first_name, last_name, email, hashedPassword, role]
+        );
 
-    res.status(201).json(sanitizeStaff(rows[0]));
+        res.status(201).json(sanitizeStaff(rows[0]));
+    } catch(error) {
+        if (error.code === '23505' && error.constraint === 'staff_email_key') {
+            return res.status(409).json({ message: 'A staff member with this email already exists.' });
+        }
+        console.error(error); 
+        res.status(500).json({ message: 'Internal server error' });
+    }
 };
 
 // @desc    Get all staff for a specific restaurant
@@ -66,7 +65,6 @@ const updateStaff = async (req, res) => {
     const { id } = req.params;
     const { first_name, last_name, email, role, is_active } = req.body;
 
-    // Note: Password updates should be handled via a separate, dedicated endpoint for security.
     const { rows } = await pool.query(
         'UPDATE staff SET first_name = $1, last_name = $2, email = $3, role = $4, is_active = $5 WHERE staff_id = $6 RETURNING *',
         [first_name, last_name, email, role, is_active, id]
@@ -84,6 +82,9 @@ const updateStaff = async (req, res) => {
 // @access  Private (Admin)
 const deleteStaff = async (req, res) => {
     const { id } = req.params;
+    if(!id){
+        return res.status(400).json({ message: 'Please provide a staff_id' });
+    }
     const { rowCount } = await pool.query('DELETE FROM staff WHERE staff_id = $1', [id]);
 
     if (rowCount === 0) {
